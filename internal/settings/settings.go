@@ -21,6 +21,7 @@ type Settings struct {
 	ProxySelections       map[string]map[string]string   `json:"proxySelections"`
 	StartMinimized        bool                           `json:"startMinimized"`
 	LaunchAtLogin         bool                           `json:"launchAtLogin"`
+	ThemeMode             string                         `json:"themeMode"`
 }
 
 func Default() Settings {
@@ -37,6 +38,7 @@ func Default() Settings {
 		ProxySelections:       make(map[string]map[string]string),
 		StartMinimized:        false,
 		LaunchAtLogin:         false,
+		ThemeMode:             "system",
 	}
 }
 
@@ -87,6 +89,9 @@ func (s *Store) Save(data Settings) error {
 	}
 	if data.SubscriptionUserAgent == "" {
 		data.SubscriptionUserAgent = "clash-verge/v1.0"
+	}
+	if data.ThemeMode != "light" && data.ThemeMode != "dark" && data.ThemeMode != "system" {
+		data.ThemeMode = "system"
 	}
 	s.data = data
 	raw, err := json.MarshalIndent(data, "", "  ")

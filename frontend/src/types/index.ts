@@ -50,6 +50,8 @@ export interface ProfileItem {
   updatedAt: number
 }
 
+export type ThemeMode = 'system' | 'light' | 'dark'
+
 export interface AppSettings {
   autoStartCore: boolean
   autoSystemProxy: boolean
@@ -63,6 +65,7 @@ export interface AppSettings {
   proxySelections: Record<string, Record<string, string>>
   startMinimized: boolean
   launchAtLogin: boolean
+  themeMode: ThemeMode
 }
 
 export interface RuleItem {

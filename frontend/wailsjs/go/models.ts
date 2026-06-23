@@ -254,6 +254,7 @@ export namespace settings {
 	    proxySelections: Record<string, any>;
 	    startMinimized: boolean;
 	    launchAtLogin: boolean;
+	    themeMode: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Settings(source);
@@ -273,6 +274,7 @@ export namespace settings {
 	        this.proxySelections = source["proxySelections"];
 	        this.startMinimized = source["startMinimized"];
 	        this.launchAtLogin = source["launchAtLogin"];
+	        this.themeMode = source["themeMode"];
 	    }
 	}
 

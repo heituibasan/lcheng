@@ -8,10 +8,10 @@ import {
   NLayoutContent,
   NMenu,
   NIcon,
+  NButton,
   NMessageProvider,
   NDialogProvider,
   NNotificationProvider,
-  darkTheme,
   type MenuOption,
 } from 'naive-ui'
 import {
@@ -22,19 +22,17 @@ import {
   ListOutline,
   TerminalOutline,
   InformationCircleOutline,
+  MoonOutline,
+  SunnyOutline,
 } from '@vicons/ionicons5'
+import { provideAppTheme } from './composables/useAppTheme'
 
 const router = useRouter()
 const route = useRoute()
+const { theme, isDark, toggleLightDark } = provideAppTheme()
 
 const SIDEBAR_BREAKPOINT = 960
 const collapsed = ref(window.innerWidth < SIDEBAR_BREAKPOINT)
-
-const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
-const isDark = ref(prefersDark.matches)
-prefersDark.addEventListener('change', (e) => { isDark.value = e.matches })
-
-const theme = computed(() => (isDark.value ? darkTheme : null))
 
 const menuOptions: MenuOption[] = [
   { label: '控制面板', key: 'dashboard', icon: () => h(NIcon, null, { default: () => h(SpeedometerOutline) }) },
@@ -48,6 +46,8 @@ const menuOptions: MenuOption[] = [
 
 const activeKey = computed(() => route.name as string)
 const onMenuUpdate = (key: string) => router.push({ name: key })
+
+const themeToggleTitle = computed(() => (isDark.value ? '切换为浅色主题' : '切换为深色主题'))
 
 const handleResize = () => {
   if (window.innerWidth < SIDEBAR_BREAKPOINT) {
@@ -87,6 +87,21 @@ onUnmounted(() => window.removeEventListener('resize', handleResize))
                 :options="menuOptions"
                 @update:value="onMenuUpdate"
               />
+              <div class="sidebar-footer">
+                <n-button
+                  quaternary
+                  circle
+                  :title="themeToggleTitle"
+                  @click="toggleLightDark"
+                >
+                  <template #icon>
+                    <n-icon>
+                      <MoonOutline v-if="isDark" />
+                      <SunnyOutline v-else />
+                    </n-icon>
+                  </template>
+                </n-button>
+              </div>
             </n-layout-sider>
 
             <n-layout class="main-panel">
@@ -134,6 +149,19 @@ onUnmounted(() => window.removeEventListener('resize', handleResize))
   justify-content: center;
   font-weight: 700;
   font-size: 18px;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 12px 0 16px;
+  display: flex;
+  justify-content: center;
+}
+
+:deep(.n-layout-sider-scroll-container) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
 
 .content {

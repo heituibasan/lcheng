@@ -5,6 +5,8 @@ import {
   NInputNumber, useMessage,
 } from 'naive-ui'
 import { useAppStatus, formatBytes, formatSpeed } from '../composables/useAppStatus'
+import { useAppTheme } from '../composables/useAppTheme'
+import type { ThemeMode } from '../types'
 import {
   GetConfigs, GetTraffic, GetSettings, SaveSettings,
   SetTunEnabled, SetAllowLan, SetLaunchAtLogin,
@@ -13,6 +15,7 @@ import type { AppSettings } from '../types'
 
 const message = useMessage()
 const { status, loading, running, connected, refresh, connect, disconnect, setMode } = useAppStatus()
+const { themeMode, setThemeMode } = useAppTheme()
 
 const mode = ref('rule')
 const trafficUp = ref(0)
@@ -33,6 +36,7 @@ const form = ref<AppSettings>({
   proxySelections: {},
   startMinimized: false,
   launchAtLogin: false,
+  themeMode: 'system',
 })
 
 const modeOptions = [
@@ -49,6 +53,12 @@ const logLevels = [
   { label: '调试', value: 'debug' },
 ]
 
+const themeOptions = [
+  { label: '跟随系统', value: 'system' },
+  { label: '浅色', value: 'light' },
+  { label: '深色', value: 'dark' },
+]
+
 let portTimer: number
 
 const applySettings = async () => {
@@ -61,7 +71,14 @@ const applySettings = async () => {
 }
 
 const loadExtra = async () => {
-  form.value = await GetSettings()
+  const settings = await GetSettings()
+  form.value = {
+    ...settings,
+    themeMode: (settings.themeMode === 'light' || settings.themeMode === 'dark' || settings.themeMode === 'system')
+      ? settings.themeMode
+      : 'system',
+  }
+  themeMode.value = form.value.themeMode
 
   if (!running.value) return
   try {
@@ -149,6 +166,11 @@ const onAllowLan = async (v: boolean) => {
 const onLogLevel = async (v: string) => {
   form.value.logLevel = v
   await applySettings()
+}
+
+const onThemeMode = async (v: ThemeMode) => {
+  form.value.themeMode = v
+  await setThemeMode(v)
 }
 
 let timer: number
@@ -247,6 +269,16 @@ onUnmounted(() => {
 
     <n-card title="启动选项" size="small" :bordered="false" class="section startup-card">
       <n-space vertical :size="16">
+        <div class="setting-row">
+          <span>主题</span>
+          <n-select
+            :value="themeMode"
+            :options="themeOptions"
+            size="small"
+            style="width: 140px"
+            @update:value="onThemeMode"
+          />
+        </div>
         <div class="setting-row">
           <span>开机启动</span>
           <n-switch :value="form.launchAtLogin" @update:value="onLaunchAtLogin" />

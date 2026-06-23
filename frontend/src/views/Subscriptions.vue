@@ -11,6 +11,7 @@ import {
   GetConfigContent, SaveConfigContent, TestConfig, RenameConfig,
 } from '../../wailsjs/go/main/App'
 import YamlEditor from '../components/YamlEditor.vue'
+import { useAppTheme } from '../composables/useAppTheme'
 
 interface ConfigEntry {
   id: string
@@ -23,6 +24,7 @@ interface ConfigEntry {
 
 const message = useMessage()
 const dialog = useDialog()
+const { isDark } = useAppTheme()
 const urlInput = ref('')
 const configs = ref<ConfigEntry[]>([])
 const loading = ref(false)
@@ -35,10 +37,6 @@ const contextTarget = ref<ConfigEntry | null>(null)
 const dropdownX = ref(0)
 const dropdownY = ref(0)
 const showDropdown = ref(false)
-
-const prefersDark = window.matchMedia('(prefers-color-scheme: dark)')
-const isDark = ref(prefersDark.matches)
-prefersDark.addEventListener('change', (e) => { isDark.value = e.matches })
 
 const hasUrlConfigs = computed(() => configs.value.some((c) => c.sourceUrl))
 
