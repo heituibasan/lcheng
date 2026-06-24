@@ -13,6 +13,7 @@ import (
 	"github.com/metacubex/mihomo/hub/executor"
 
 	appconfig "vpn_clash/internal/config"
+	"vpn_clash/internal/geobundle"
 	"vpn_clash/internal/paths"
 )
 
@@ -59,6 +60,10 @@ func (m *Manager) Start() error {
 
 	if err := config.Init(homeDir); err != nil {
 		return fmt.Errorf("init config directory: %w", err)
+	}
+
+	if err := geobundle.Ensure(); err != nil {
+		return fmt.Errorf("ensure geodata: %w", err)
 	}
 
 	content := m.store.Get()
@@ -115,6 +120,10 @@ func (m *Manager) TestConfig(content string) error {
 	defer C.SetHomeDir(prevHome)
 
 	if err := config.Init(homeDir); err != nil {
+		return err
+	}
+
+	if err := geobundle.Ensure(); err != nil {
 		return err
 	}
 

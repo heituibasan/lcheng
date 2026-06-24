@@ -92,14 +92,14 @@ const loadExtra = async () => {
   } catch { /* ignore */ }
 }
 
-const toggleVPN = async () => {
+const toggleProxy = async () => {
   try {
     if (connected.value) {
       await disconnect()
-      message.success('已断开 VPN')
+      message.success('已断开代理')
     } else {
       await connect()
-      message.success('VPN 已连接')
+      message.success('代理已连接')
     }
     await loadExtra()
   } catch (e: unknown) {
@@ -192,7 +192,7 @@ onUnmounted(() => {
       <div class="hero">
         <div>
           <n-tag :type="connected ? 'success' : 'default'" round size="large">
-            {{ connected ? 'VPN 已连接' : 'VPN 未连接' }}
+            {{ connected ? '代理已连接' : '代理未连接' }}
           </n-tag>
           <h2>{{ connected ? '流量已通过代理' : '点击连接开始代理' }}</h2>
           <p v-if="status.version" class="sub">{{ status.version }} · 端口 {{ status.mixedPort }}</p>
@@ -202,7 +202,7 @@ onUnmounted(() => {
           size="large"
           class="connect-btn"
           :loading="loading"
-          @click="toggleVPN"
+          @click="toggleProxy"
         >
           {{ connected ? '断开' : '一键连接' }}
         </n-button>

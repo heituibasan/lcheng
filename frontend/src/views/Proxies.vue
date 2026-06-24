@@ -85,15 +85,13 @@ const selectProxy = async (group: string, proxy: string) => {
 }
 
 const testGroup = async (group: string) => {
-  if (!running.value) {
-    message.info('连接 VPN 后可测速')
-    return
-  }
   testing.value = true
   try {
     const res = await DelayTestGroup(group)
     delays.value = { ...delays.value, ...(res as Record<string, number>) }
     message.success(`${group} 延迟测试完成`)
+    await refresh()
+    await loadProxies()
   } catch (e: unknown) {
     message.error(String(e))
   } finally {
@@ -102,15 +100,17 @@ const testGroup = async (group: string) => {
 }
 
 const testAll = async () => {
-  if (!running.value) {
-    message.info('连接 VPN 后可测速')
-    return
-  }
   testing.value = true
   try {
     for (const group of selectableGroups.value) {
-      await testGroup(group.name)
+      const res = await DelayTestGroup(group.name)
+      delays.value = { ...delays.value, ...(res as Record<string, number>) }
     }
+    message.success('全部延迟测试完成')
+    await refresh()
+    await loadProxies()
+  } catch (e: unknown) {
+    message.error(String(e))
   } finally {
     testing.value = false
   }

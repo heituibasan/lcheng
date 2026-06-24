@@ -78,7 +78,7 @@ watch(running, load)
           <n-button :disabled="!running" type="warning" @click="closeAll">全部关闭</n-button>
         </div>
       </template>
-      <n-empty v-if="!running" description="请先连接 VPN" />
+      <n-empty v-if="!running" description="请先连接代理" />
       <n-data-table
         v-else
         :columns="columns"

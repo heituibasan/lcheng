@@ -15,6 +15,7 @@ import (
 	"vpn_clash/internal/clashapi"
 	appconfig "vpn_clash/internal/config"
 	"vpn_clash/internal/core"
+	"vpn_clash/internal/geobundle"
 	"vpn_clash/internal/monitor"
 	"vpn_clash/internal/profile"
 	"vpn_clash/internal/settings"
@@ -99,6 +100,10 @@ func (a *App) startup(ctx context.Context) {
 		panic(err)
 	}
 	a.profiles = profiles
+
+	if err := geobundle.Ensure(); err != nil {
+		panic(err)
+	}
 
 	if settingStore.Get().AutoStartCore {
 		_ = a.Connect()
@@ -224,19 +229,27 @@ func (a *App) SaveSettings(data settings.Settings) error {
 	return nil
 }
 
-func (a *App) Connect() error {
+func (a *App) ensureCoreRunning() error {
 	if err := a.applySettingsToConfig(); err != nil {
 		return err
 	}
-	if !a.core.IsRunning() {
-		updater.RegisterGeoUpdater()
-		if err := a.core.Start(); err != nil {
-			return err
-		}
-		a.refreshAPIClient()
-		address, secret := a.store.Controller()
-		a.monitor.Start(address, secret)
-		a.applySavedProxySelections()
+	if a.core.IsRunning() {
+		return nil
+	}
+	updater.RegisterGeoUpdater()
+	if err := a.core.Start(); err != nil {
+		return err
+	}
+	a.refreshAPIClient()
+	address, secret := a.store.Controller()
+	a.monitor.Start(address, secret)
+	a.applySavedProxySelections()
+	return nil
+}
+
+func (a *App) Connect() error {
+	if err := a.ensureCoreRunning(); err != nil {
+		return err
 	}
 
 	s := a.settings.Get()
@@ -252,7 +265,7 @@ func (a *App) Connect() error {
 		_ = a.settings.Save(s)
 	}
 
-	runtime.EventsEmit(a.ctx, "vpn:connected", a.GetStatus())
+	runtime.EventsEmit(a.ctx, "proxy:connected", a.GetStatus())
 	return nil
 }
 
@@ -272,7 +285,7 @@ func (a *App) Disconnect() error {
 		}
 	}
 
-	runtime.EventsEmit(a.ctx, "vpn:disconnected", a.GetStatus())
+	runtime.EventsEmit(a.ctx, "proxy:disconnected", a.GetStatus())
 	return nil
 }
 
@@ -478,15 +491,15 @@ func (a *App) CloseConnection(id string) error {
 }
 
 func (a *App) DelayTest(proxy string) (map[string]any, error) {
-	if !a.core.IsRunning() {
-		return nil, fmt.Errorf("core is not running")
+	if err := a.ensureCoreRunning(); err != nil {
+		return nil, err
 	}
 	return a.clash.DelayTest(proxy, "", 5000)
 }
 
 func (a *App) DelayTestGroup(group string) (map[string]any, error) {
-	if !a.core.IsRunning() {
-		return nil, fmt.Errorf("core is not running")
+	if err := a.ensureCoreRunning(); err != nil {
+		return nil, err
 	}
 	return a.clash.DelayTestGroup(group, "", 5000)
 }
